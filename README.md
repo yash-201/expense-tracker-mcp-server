@@ -112,12 +112,28 @@ Add the `expense-server` definition under `mcpServers`.
 
 ---
 
-## 🧰 Available Tools (Current `main.py`)
+## 🌐 Deployed MCP Endpoint
 
+The server is deployed and accessible via HTTP / SSE:
+- **Endpoint URL**: `https://expense-tracker-ykp.fastmcp.app/mcp`
+
+---
+
+## 🧰 Available Tools & Resources
+
+### Tools
 | Tool | Parameters | Description |
 | :--- | :--- | :--- |
 | `roll_dice` | `n_dice: int = 1` | Rolls `n_dice` 6-sided dice and returns results list. |
 | `add_numbers` | `a: float, b: float` | Adds two numbers together and returns the sum. |
+| `add_expense` | `date, amount, category, subcategory="", note=""` | Adds a new expense entry to the database. |
+| `list_expenses` | `start_date=None, end_date=None` | Lists expense entries, optionally filtered within an inclusive date range. |
+| `summarize` | `start_date, end_date, category=None` | Summarizes expenses by category within an inclusive date range. |
+
+### Resources
+| URI | MIME Type | Description |
+| :--- | :--- | :--- |
+| `expense:///categories` | `application/json` | Provides the list of valid expense categories. |
 
 ---
 
