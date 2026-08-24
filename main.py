@@ -39,28 +39,28 @@ def init_db():
 init_db()
 
 @mcp.tool
-def roll_dice(n_dice: int = 1) -> list[int]:
+async def roll_dice(n_dice: int = 1) -> list[int]:
     """Roll n_dice 6-sided dice and return the results."""
     return [random.randint(1, 6) for _ in range(n_dice)]
 
 @mcp.tool
-def add_numbers(a: float, b: float) -> float:
+async def add_numbers(a: float, b: float) -> float:
     """Add two numbers together."""
     return a + b
 
 @mcp.tool()
-async def add_expense(date, amount, category, subcategory="", note=""):  # Changed: added async
+async def add_expense(date, amount, category, subcategory="", note=""):  
     '''Add a new expense entry to the database.'''
     try:
-        async with aiosqlite.connect(DB_PATH) as c:  # Changed: added async
-            cur = await c.execute(  # Changed: added await
+        async with aiosqlite.connect(DB_PATH) as c:  
+            cur = await c.execute(  
                 "INSERT INTO expenses(date, amount, category, subcategory, note) VALUES (?,?,?,?,?)",
                 (date, amount, category, subcategory, note)
             )
             expense_id = cur.lastrowid
-            await c.commit()  # Changed: added await
+            await c.commit()  
             return {"status": "success", "id": expense_id, "message": "Expense added successfully"}
-    except Exception as e:  # Changed: simplified exception handling
+    except Exception as e: 
         if "readonly" in str(e).lower():
             return {"status": "error", "message": "Database is in read-only mode. Check file permissions."}
         return {"status": "error", "message": f"Database error: {str(e)}"}
@@ -93,10 +93,10 @@ async def list_expenses(start_date: str | None = None, end_date: str | None = No
         return {"status": "error", "message": f"Error listing expenses: {str(e)}"}
 
 @mcp.tool()
-async def summarize(start_date, end_date, category=None):  # Changed: added async
+async def summarize(start_date, end_date, category=None): 
     '''Summarize expenses by category within an inclusive date range.'''
     try:
-        async with aiosqlite.connect(DB_PATH) as c:  # Changed: added async
+        async with aiosqlite.connect(DB_PATH) as c: 
             query = """
                 SELECT category, SUM(amount) AS total_amount, COUNT(*) as count
                 FROM expenses
@@ -110,9 +110,9 @@ async def summarize(start_date, end_date, category=None):  # Changed: added asyn
 
             query += " GROUP BY category ORDER BY total_amount DESC"
 
-            cur = await c.execute(query, params)  # Changed: added await
+            cur = await c.execute(query, params)  
             cols = [d[0] for d in cur.description]
-            return [dict(zip(cols, r)) for r in await cur.fetchall()]  # Changed: added await
+            return [dict(zip(cols, r)) for r in await cur.fetchall()]  
     except Exception as e:
         return {"status": "error", "message": f"Error summarizing expenses: {str(e)}"}
 
