@@ -1,0 +1,24 @@
+# Database
+expenses.db
+
+# Environments
+.venv/
+env/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# IDE / Editor settings
+.vscode/
+.idea/
+*.swp
+
+# FastMCP / OS cache
+.fastmcp/
+.DS_Store
