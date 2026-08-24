@@ -4,6 +4,8 @@ import os
 import aiosqlite
 import tempfile
 
+import sys
+
 # Create a FastMCP server instance
 mcp = FastMCP(name="expense server")
 
@@ -12,12 +14,12 @@ TEMP_DIR = tempfile.gettempdir()
 DB_PATH = os.path.join(TEMP_DIR, "expenses.db")
 CATEGORIES_PATH = os.path.join(os.path.dirname(__file__), "categories.json")
 
-print(f"Database path: {DB_PATH}")
+print(f"Database path: {DB_PATH}", file=sys.stderr)
 
 def init_db():
     try:
         import sqlite3
-        with sqlite3.connect(DB_PATH) as c:
+        with sqlite3.connect(DB_PATH, timeout=20.0) as c:
             c.execute("PRAGMA journal_mode=WAL")
             c.execute("""
             CREATE TABLE IF NOT EXISTS expenses(
@@ -28,14 +30,10 @@ def init_db():
                 subcategory TEXT DEFAULT '',
                 note TEXT DEFAULT ''
             )
-        """)
-
-        # Test write access
-        c.execute("INSERT OR IGNORE INTO expenses(date, amount, category) VALUES ('2000-01-01', 0, 'test')")
-        c.execute("DELETE FROM expenses WHERE category = 'test'")
-        print("Database initialized successfully with write access")
+            """)
+        print("Database initialized successfully", file=sys.stderr)
     except Exception as e:
-        print(f"Database initialization error: {e}")
+        print(f"Database initialization error: {e}", file=sys.stderr)
         raise
 
 init_db()
@@ -68,21 +66,29 @@ async def add_expense(date, amount, category, subcategory="", note=""):  # Chang
         return {"status": "error", "message": f"Database error: {str(e)}"}
     
 @mcp.tool()
-async def list_expenses(start_date, end_date):  # Changed: added async
-    '''List expense entries within an inclusive date range.'''
+async def list_expenses(start_date: str | None = None, end_date: str | None = None):
+    '''List expense entries, optionally filtered within an inclusive date range.'''
     try:
-        async with aiosqlite.connect(DB_PATH) as c:  # Changed: added async
-            cur = await c.execute(  # Changed: added await
-                """
-                SELECT id, date, amount, category, subcategory, note
-                FROM expenses
-                WHERE date BETWEEN ? AND ?
-                ORDER BY date DESC, id DESC
-                """,
-                (start_date, end_date)
-            )
+        async with aiosqlite.connect(DB_PATH) as c:
+            query = "SELECT id, date, amount, category, subcategory, note FROM expenses"
+            conditions = []
+            params = []
+
+            if start_date:
+                conditions.append("date >= ?")
+                params.append(start_date)
+            if end_date:
+                conditions.append("date <= ?")
+                params.append(end_date)
+
+            if conditions:
+                query += " WHERE " + " AND ".join(conditions)
+
+            query += " ORDER BY date DESC, id DESC"
+
+            cur = await c.execute(query, params)
             cols = [d[0] for d in cur.description]
-            return [dict(zip(cols, r)) for r in await cur.fetchall()]  # Changed: added await
+            return [dict(zip(cols, r)) for r in await cur.fetchall()]
     except Exception as e:
         return {"status": "error", "message": f"Error listing expenses: {str(e)}"}
 
