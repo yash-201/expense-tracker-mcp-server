@@ -91,11 +91,11 @@ Add the `expense-server` definition under `mcpServers`.
 {
   "mcpServers": {
     "expense-server": {
-      "command": "C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.exe",
+      "command": "C:\\Users\\pyash\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\uv.exe",
       "args": [
         "run",
         "--directory",
-        "g:\\Projects\\expense-tracker-mcp-server",
+        "d:\\expense-tracker-mcp-server",
         "fastmcp",
         "run",
         "main.py"
